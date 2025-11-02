@@ -55,3 +55,32 @@ tasks.withType(JavaCompile).configureEach {
 test {
     useJUnitPlatform()
 }
+
+publishing {
+    // other settings of publication
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = System.getenv("VERSION") ?: project.version.toString()
+                from(components["java"])
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "Gitea"
+            url = uri("https://git.kosyakmakc.ru/api/packages/kosyakmakc/maven")
+
+            credentials(HttpHeaderCredentials) {
+                name = "Authorization"
+                value = "token " + System.getenv("REGISTRY_TOKEN")
+            }
+
+            authentication {
+                header(HttpHeaderAuthentication)
+            }
+        }
+    }
+}
