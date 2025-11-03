@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.github.kosyakmakc:social-bridge:0.1.0-14"
+    compileOnly "io.github.kosyakmakc:social-bridge:0.2.+"
     implementation project(":")
 
     compileOnly "io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT"

@@ -1,6 +1,13 @@
 name: publish Telegram social platform API
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -11,12 +18,6 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-      - name: Get latest tag
-        id: latest_tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
-        with:
-          # Optional: Set to true to consider only tags in the shape of semver (e.g., v1.0.0, 1.2.3)
-          semver_only: true
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -26,6 +27,6 @@ jobs:
       - name: Upload to Maven repository
         env:
           REGISTRY_TOKEN: ${{ secrets.MVN_PUBLISH_TOKEN }}
-          VERSION: ${{ steps.latest_tag.outputs.tag }}-${{ github.run_number }}
+          VERSION: 0.1.0-SNAPSHOT-master-${{ github.run_number }}
         run: |
           ./gradlew :publish

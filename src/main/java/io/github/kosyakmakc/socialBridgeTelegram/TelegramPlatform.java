@@ -11,7 +11,7 @@ public class TelegramPlatform implements ISocialPlatform {
     private ISocialBridge bridge;
     private TelegramBridge tgBridge;
 
-    private final Version socialBridgeCompabilityVersion = new Version("0.1.0");
+    private final Version socialBridgeCompabilityVersion = new Version("0.2.0");
 
     @Override
     public void Start() {
