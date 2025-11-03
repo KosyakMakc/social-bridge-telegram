@@ -1,4 +1,5 @@
 package io.github.kosyakmakc.socialBridgeTelegram;
+import dev.vanutp.tgbridge.common.TgMessage;
 import dev.vanutp.tgbridge.common.TgUser;
 import io.github.kosyakmakc.socialBridge.DatabasePlatform.LocalizationService;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.ISocialPlatform;
@@ -9,10 +10,12 @@ import java.util.HashMap;
 
 public class TelegramUser extends SocialUser {
     private final TgUser user;
+    private final TgMessage lastMessage;
 
-    public TelegramUser(ISocialPlatform socialPlatform, TgUser user) {
+    public TelegramUser(ISocialPlatform socialPlatform, TgMessage message) {
         super(socialPlatform);
-        this.user = user;
+        this.lastMessage = message;
+        this.user = message.getFrom();
     }
 
     @Override
@@ -39,5 +42,9 @@ public class TelegramUser extends SocialUser {
     @Override
     public Object getId() {
         return user.getId();
+    }
+
+    public TgMessage getLastMessage() {
+        return lastMessage;
     }
 }

@@ -17,14 +17,18 @@ public class TelegramPlatform implements ISocialPlatform {
     public void Start() {
         this.tgBridge = TelegramBridge.Companion.getINSTANCE();
 
-        var self = this;
-
         tgBridge.addIntegration(new MessageHandlerIntegration(this));
-//        for (var socialCommand : bridge.getSocialCommands()) {
-//            tgBridge.getBot().registerCommandHandler(socialCommand.getLiteral(), (tgMessage, continuation) -> {
-//
-//                return null;
-//            });
+
+        // commands handling
+//        for (var module : bridge.getModules()) {
+//            for (var socialCommand : module.getSocialCommands()) {
+//                tgBridge.getBot().registerCommandHandler(module.getName() + '-' + socialCommand.getLiteral(), (tgMessage, continuation) -> {
+//                    // TODO надо бы регистрировать команды КАК КОМАНДЫ...
+//                    // А не как сейчас в tgbridge в виде обработки сообщений)
+//                    // Тем не менее моя текущая реализация тоже работает через обработку сообщений...
+//                    return null;
+//                });
+//            }
 //        }
     }
 
@@ -47,8 +51,7 @@ public class TelegramPlatform implements ISocialPlatform {
     }
 
     @Override
-    public void sendMessage(SocialUser telegramUser, String message, HashMap<String, String> placeholders) {
-
+    public void sendMessage(SocialUser socialUser, String message, HashMap<String, String> placeholders) {
 //        var builder = MiniMessage.builder()
 //                .tags(TagResolver.builder()
 //                        .resolver(StandardTags.defaults())
@@ -60,19 +63,20 @@ public class TelegramPlatform implements ISocialPlatform {
 //        var builtMessage = builder.build().deserialize(message);
 
 
-        // TODO api extend?
-//            var chatId = chatEvent.getMessage().getChat().getId();
-//            var replyToId = chatEvent.getMessage().getMessageId();
-//            socialPlatform.getTgBridge().getBot().sendMessage(
+        // TODO вызов "getTgBridge().getBot().sendMessage" дает краш "java.lang.NoSuchMethodError"
+//            var tgUser = (TelegramUser) socialUser;
+//            var chatId = tgUser.getLastMessage().getChat().getId();
+//            var replyToId = tgUser.getLastMessage().getMessageId();
+//            getTgBridge().getBot().sendMessage(
 //                    chatId,
-//                    builtMessage,
+//                    "test message",
 //                    null,
 //                    replyToId,
 //                    "HTML",
 //                    true,
 //                    null);
-//        this.getBridge().getLogger().info("tgMessage to \"" + telegramUser.getName() + "\" - " + builtMessage);
-        this.getBridge().getLogger().info("tgMessage to \"" + telegramUser.getName() + "\" - " + message);
+//        this.getBridge().getLogger().info("tgMessage to \"" + socialUser.getName() + "\" - " + builtMessage);
+        this.getBridge().getLogger().info("tgMessage to \"" + socialUser.getName() + "\" - " + message);
     }
 
     @Override

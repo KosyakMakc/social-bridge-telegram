@@ -6,7 +6,6 @@ import io.github.kosyakmakc.socialBridge.Commands.Arguments.ArgumentFormatExcept
 import io.github.kosyakmakc.socialBridge.Commands.Arguments.CommandArgument;
 
 import java.io.StringReader;
-import java.util.Objects;
 
 public class MessageHandlerIntegration implements ITgbridgeCompat {
     private static final CommandArgument<String> systemWordArgument = CommandArgument.ofWord("/{botSuffix}-{commandLiteral} [arguments, ...]");
@@ -24,7 +23,7 @@ public class MessageHandlerIntegration implements ITgbridgeCompat {
     @Override
     public void enable() {
         TgbridgeEvents.INSTANCE.getTG_CHAT_MESSAGE().addListener((chatEvent) -> {
-            var socialUser = new TelegramUser(socialPlatform, chatEvent.getMessage().getFrom());
+            var socialUser = new TelegramUser(socialPlatform, chatEvent.getMessage());
 
             var message = chatEvent.getMessage().getEffectiveText();
 
@@ -38,7 +37,7 @@ public class MessageHandlerIntegration implements ITgbridgeCompat {
                 return;
             }
 
-            // TODO Messages handling
+            // TODO Messages handling in feature
 //            var mcPlayer = socialUser.getMinecraftUser();
 //
 //            if (mcPlayer != null) {
@@ -70,12 +69,12 @@ public class MessageHandlerIntegration implements ITgbridgeCompat {
             }
         } catch (ArgumentFormatException e) {
             e.logTo(socialPlatform.getBridge().getLogger());
-            // TODO reply error to user in social platform
+            // TODO вызов "getTgBridge().getBot().sendMessage" дает краш "java.lang.NoSuchMethodError"
 //            var chatId = chatEvent.getMessage().getChat().getId();
 //            var replyToId = chatEvent.getMessage().getMessageId();
 //            socialPlatform.getTgBridge().getBot().sendMessage(
 //                    chatId,
-//                    e.getMessage(),
+//                    e.getMessage(), // хоть чтото бы в тг отправить...
 //                    null,
 //                    replyToId,
 //                    "HTML",
