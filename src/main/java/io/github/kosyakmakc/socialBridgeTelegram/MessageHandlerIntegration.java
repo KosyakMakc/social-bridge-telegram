@@ -9,7 +9,7 @@ import java.io.StringReader;
 import java.util.Objects;
 
 public class MessageHandlerIntegration implements ITgbridgeCompat {
-    private static final CommandArgument<String> systemWordArgument = CommandArgument.ofWord("/{botSuffix} {commandLiteral} [arguments, ...]");
+    private static final CommandArgument<String> systemWordArgument = CommandArgument.ofWord("/{botSuffix}-{commandLiteral} [arguments, ...]");
     private final TelegramPlatform socialPlatform;
 
     public MessageHandlerIntegration(TelegramPlatform telegramPlatform) {
@@ -34,6 +34,7 @@ public class MessageHandlerIntegration implements ITgbridgeCompat {
 
             // Commands handling
             if (TryCommandHandle(chatEvent, message, socialUser)) {
+                chatEvent.setCancelled(true);
                 return;
             }
 
@@ -51,20 +52,18 @@ public class MessageHandlerIntegration implements ITgbridgeCompat {
         var argsReader = new StringReader(message);
 
         try {
-            // pumping "/{moduleSuffix}" in reader
-            var botSuffix = systemWordArgument.getValue(argsReader);
+            // pumping "/{moduleSuffix}-{commandLiteral}" in reader
+            var commandLiteral = systemWordArgument.getValue(argsReader);
 
             for (var module : socialPlatform.getBridge().getModules()) {
-                if (!Objects.equals(botSuffix, "/" + module.getName())) {
+
+                if (!commandLiteral.startsWith('/' + module.getName())) {
                     continue;
                 }
 
-                // pumping {commandLiteral} in reader
-                var commandLiteral = systemWordArgument.getValue(argsReader);
-
                 for (var socialCommand : module.getSocialCommands()) {
-                    if (commandLiteral.equals(socialCommand.getLiteral())) {
-                            socialCommand.handle(socialUser, argsReader);
+                    if (commandLiteral.equals('/' + module.getName() + '-' + socialCommand.getLiteral())) {
+                        socialCommand.handle(socialUser, argsReader);
                         return true;
                     }
                 }
