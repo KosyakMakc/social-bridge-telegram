@@ -1,18 +1,18 @@
 package io.github.kosyakmakc.socialBridgeTelegram;
-import dev.vanutp.tgbridge.common.TgMessage;
-import dev.vanutp.tgbridge.common.TgUser;
-import io.github.kosyakmakc.socialBridge.DatabasePlatform.LocalizationService;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.ISocialPlatform;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.SocialUser;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.SocialUserIdType;
 
 import java.util.HashMap;
 
-public class TelegramUser extends SocialUser {
-    private final TgUser user;
-    private final TgMessage lastMessage;
+import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 
-    public TelegramUser(ISocialPlatform socialPlatform, TgMessage message) {
+public class TelegramUser extends SocialUser {
+    private final User user;
+    private final Message lastMessage;
+
+    public TelegramUser(ISocialPlatform socialPlatform, Message message) {
         super(socialPlatform);
         this.lastMessage = message;
         this.user = message.getFrom();
@@ -20,7 +20,7 @@ public class TelegramUser extends SocialUser {
 
     @Override
     public String getName() {
-        return user.getFullName();
+        return user.getFirstName() + user.getLastName();
     }
 
     @Override
@@ -30,8 +30,7 @@ public class TelegramUser extends SocialUser {
 
     @Override
     public String getLocale() {
-        // TODO api extend?
-        return LocalizationService.defaultLocale;
+        return user.getLanguageCode();
     }
 
     @Override
@@ -44,7 +43,7 @@ public class TelegramUser extends SocialUser {
         return user.getId();
     }
 
-    public TgMessage getLastMessage() {
+    public Message getLastMessage() {
         return lastMessage;
     }
 }
