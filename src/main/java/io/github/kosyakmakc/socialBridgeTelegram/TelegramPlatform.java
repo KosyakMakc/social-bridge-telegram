@@ -54,6 +54,11 @@ public class TelegramPlatform implements ISocialPlatform {
         botState = BotState.Starting;
         var token = getTgToken();
 
+        if (token.isBlank()) {
+            getBridge().getLogger().info("Token missed, connect to telegram canceled");
+            return CompletableFuture.completedFuture(false);
+        }
+
         return withRetries(() -> {
             try {
                 botsApplication.registerBot(token, TgUpdatesHandler);
