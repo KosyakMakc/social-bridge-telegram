@@ -2,6 +2,7 @@ package io.github.kosyakmakc.socialBridgeTelegram.Utils;
 
 import io.github.kosyakmakc.socialBridge.Utils.MessageKey;
 
+// TODO - move to social-bridge
 public class TranslationException extends Throwable {
     private MessageKey messageKey;
 
