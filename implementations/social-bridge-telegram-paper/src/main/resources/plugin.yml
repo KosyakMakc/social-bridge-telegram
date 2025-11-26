@@ -1,7 +1,7 @@
 name: SocialBridge-telegram-paper
-version: '0.2.0'
+version: '0.2.1'
 main: io.github.kosyakmakc.socialBridgeTelegram.paper.SocialBridgeTelegramPlugin
 api-version: '1.21'
 authors: [ kosyakmakc ]
-depend: [SocialBridge-paper, tgbridge]
+depend: [SocialBridge-paper]
 folia-supported: true

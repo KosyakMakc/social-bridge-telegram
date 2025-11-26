@@ -10,24 +10,22 @@ version = System.getenv("VERSION") ?: '0.1.0-SNAPSHOT'
 repositories {
     mavenCentral()
     maven {
-        name = "tgbridge"
-        url = "https://mvn.vtp.sh/main"
-    }
-    maven {
         name = "gitea"
         url = "https://git.kosyakmakc.ru/api/packages/kosyakmakc/maven"
     }
 }
 
 dependencies {
-    compileOnly "dev.vanutp.tgbridge:common:0.1-SNAPSHOT"
     compileOnly "com.j256.ormlite:ormlite-core:6.1"
     compileOnly "com.j256.ormlite:ormlite-jdbc:6.1"
     compileOnly "io.github.kosyakmakc:social-bridge:0.2.+"
+    implementation("net.kyori:adventure-text-minimessage:4.25.0")
+    // https://github.com/rubenlagus/TelegramBots
+    implementation 'org.telegram:telegrambots-longpolling:9.2.0'
+    implementation 'org.telegram:telegrambots-client:9.2.0'
 
     testImplementation "com.j256.ormlite:ormlite-core:6.1"
     testImplementation "com.j256.ormlite:ormlite-jdbc:6.1"
-    testImplementation "dev.vanutp.tgbridge:common:0.1-SNAPSHOT"
     testImplementation "io.github.kosyakmakc:social-bridge:0.2.+"
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
