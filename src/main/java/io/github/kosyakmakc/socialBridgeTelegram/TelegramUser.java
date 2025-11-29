@@ -21,7 +21,13 @@ public class TelegramUser extends SocialUser {
 
     @Override
     public String getName() {
-        return user.getFirstName() + user.getLastName();
+        var lastname = user.getLastName();
+        if (lastname == null) {
+            return user.getFirstName();
+        }
+        else {
+            return user.getFirstName() + ' ' + user.getLastName();
+        }
     }
 
     @Override
