@@ -176,12 +176,12 @@ public class TelegramPlatform implements ISocialPlatform {
         for (var placeholderKey : placeholders.keySet()) {
             builder.editTags(x -> x.resolver(Placeholder.component(placeholderKey, Component.text(placeholders.get(placeholderKey)))));
         }
-        var builtMessage = builder.build().deserialize(message);
+        var builtMessage = builder.build().deserialize(message).toString();
 
         var tgUser = (TelegramUser) socialUser;
         var chatId = tgUser.getLastMessage().getChat().getId();
         var replyToId = tgUser.getLastMessage().getMessageId();
-        var msg = new SendMessage(chatId.toString(), message);
+        var msg = new SendMessage(chatId.toString(), builtMessage);
         msg.setReplyToMessageId(replyToId);
         msg.setParseMode(ParseMode.HTML);
 

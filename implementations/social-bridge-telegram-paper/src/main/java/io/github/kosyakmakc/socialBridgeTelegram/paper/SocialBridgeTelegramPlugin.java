@@ -7,8 +7,15 @@ import io.github.kosyakmakc.socialBridgeTelegram.TelegramPlatform;
 import io.github.kosyakmakc.socialBridgeTelegram.TelegramModule;
 
 public class SocialBridgeTelegramPlugin extends JavaPlugin {
+    private final TelegramPlatform platform;
     public SocialBridgeTelegramPlugin() {
-        SocialBridge.INSTANCE.registerSocialPlatform(new TelegramPlatform());
+        platform = new TelegramPlatform();
+        SocialBridge.INSTANCE.registerSocialPlatform(platform);
         SocialBridge.INSTANCE.registerModule(new TelegramModule());
+    }
+
+    @Override
+    public void onDisable() {
+        platform.stop().join();
     }
 }
