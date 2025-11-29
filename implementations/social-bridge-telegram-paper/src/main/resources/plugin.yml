@@ -1,5 +1,5 @@
 name: SocialBridge-telegram-paper
-version: '0.2.1'
+version: '0.2.2'
 main: io.github.kosyakmakc.socialBridgeTelegram.paper.SocialBridgeTelegramPlugin
 api-version: '1.21'
 authors: [ kosyakmakc ]
