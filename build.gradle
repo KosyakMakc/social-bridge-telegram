@@ -18,7 +18,7 @@ repositories {
 dependencies {
     compileOnly "com.j256.ormlite:ormlite-core:6.1"
     compileOnly "com.j256.ormlite:ormlite-jdbc:6.1"
-    compileOnly "io.github.kosyakmakc:social-bridge:0.2.+"
+    compileOnly "io.github.kosyakmakc:social-bridge:0.3.+"
     implementation("net.kyori:adventure-text-minimessage:4.25.0")
     // https://github.com/rubenlagus/TelegramBots
     implementation 'org.telegram:telegrambots-longpolling:9.2.0'
@@ -26,7 +26,7 @@ dependencies {
 
     testImplementation "com.j256.ormlite:ormlite-core:6.1"
     testImplementation "com.j256.ormlite:ormlite-jdbc:6.1"
-    testImplementation "io.github.kosyakmakc:social-bridge:0.2.+"
+    testImplementation "io.github.kosyakmakc:social-bridge:0.3.+"
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

@@ -1,19 +1,23 @@
 package io.github.kosyakmakc.socialBridgeTelegram;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import io.github.kosyakmakc.socialBridge.IBridgeModule;
 import io.github.kosyakmakc.socialBridge.ISocialBridge;
 import io.github.kosyakmakc.socialBridge.Commands.MinecraftCommands.IMinecraftCommand;
 import io.github.kosyakmakc.socialBridge.Commands.SocialCommands.ISocialCommand;
 import io.github.kosyakmakc.socialBridge.DatabasePlatform.DefaultTranslations.ITranslationSource;
+import io.github.kosyakmakc.socialBridge.MinecraftPlatform.IModuleLoader;
 import io.github.kosyakmakc.socialBridge.Utils.Version;
 import io.github.kosyakmakc.socialBridgeTelegram.MinecraftCommands.SetToken;
 import io.github.kosyakmakc.socialBridgeTelegram.MinecraftCommands.Status;
 import io.github.kosyakmakc.socialBridgeTelegram.Translations.English;
 
 public class TelegramModule implements IBridgeModule {
-    private static final Version compabilityVersion = new Version("0.2.1");
+    public static UUID MODULE_ID = UUID.fromString("f7e27e90-3e6c-4331-990f-1977b8a5481a");
+    private static final Version compabilityVersion = new Version("0.3.0");
     private static final String ModuleName = "Telegram";
 
     private final List<IMinecraftCommand> minecraftCommands = List.of(
@@ -27,10 +31,12 @@ public class TelegramModule implements IBridgeModule {
         new English()
     );
 
+    private final IModuleLoader loader;
+
     private ISocialBridge socialBridge;
 
-    public TelegramModule() {
-
+    public TelegramModule(IModuleLoader loader) {
+        this.loader = loader;
     }
 
     @Override
@@ -59,16 +65,31 @@ public class TelegramModule implements IBridgeModule {
     }
 
     @Override
-    public boolean init(ISocialBridge socialBridge) {
+    public CompletableFuture<Boolean> disable() {
+        this.socialBridge = null;
+        return CompletableFuture.completedFuture(true);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> enable(ISocialBridge socialBridge) {
         this.socialBridge = socialBridge;
-        for (var minecraftCommand : minecraftCommands) {
-            minecraftCommand.init(socialBridge);
-        }
-        
-        for (var socialCommand : socialCommands) {
-            socialCommand.init(socialBridge);
-        }
-        return true;
+
+        return CompletableFuture.completedFuture(true);
+    }
+
+    @Override
+    public ISocialBridge getBridge() {
+        return socialBridge;
+    }
+
+    @Override
+    public UUID getId() {
+        return MODULE_ID;
+    }
+
+    @Override
+    public IModuleLoader getLoader() {
+        return loader;
     }
 
 }
