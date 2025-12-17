@@ -3,6 +3,7 @@ package io.github.kosyakmakc.socialBridgeTelegram;
 import io.github.kosyakmakc.socialBridge.IBridgeModule;
 import io.github.kosyakmakc.socialBridge.ISocialBridge;
 import io.github.kosyakmakc.socialBridge.Commands.SocialCommands.ISocialCommand;
+import io.github.kosyakmakc.socialBridge.DatabasePlatform.LocalizationService;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.ISocialPlatform;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.Identifier;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.SocialUser;
@@ -19,15 +20,21 @@ import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
+import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -37,6 +44,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import com.j256.ormlite.table.TableUtils;
 
 public class TelegramPlatform implements ISocialPlatform {
+    private static final String PLATFORM_NAME = "telegram";
     private static final String configurationPath = "social-bridge-telegram";
     private static final String configurationPathToken = configurationPath + "_token";
     private static final String configurationPathRetryMax = configurationPath + "_retries-max";
@@ -77,9 +85,11 @@ public class TelegramPlatform implements ISocialPlatform {
                 return withRetries(() -> {
                     try {
                         telegramClient = new OkHttpTelegramClient(token);
-                        // telegramClient.execute(new SetMyCommands(null))
                         telegramHandler = new LongPollingHandler(this);
                         botsApplication.registerBot(token, telegramHandler);
+
+                        var userBot = telegramClient.execute(new GetMe());
+                        telegramHandler.setBotUsername(userBot.getUserName());
 
                         botState = BotState.Started;
                         logger.info("Telegram bot connected");
@@ -196,7 +206,7 @@ public class TelegramPlatform implements ISocialPlatform {
 
     @Override
     public String getPlatformName() {
-        return "Telegram";
+        return PLATFORM_NAME;
     }
 
     @Override
@@ -210,12 +220,14 @@ public class TelegramPlatform implements ISocialPlatform {
         for (var placeholderKey : placeholders.keySet()) {
             builder.editTags(x -> x.resolver(Placeholder.component(placeholderKey, Component.text(placeholders.get(placeholderKey)))));
         }
-        var builtMessage = builder.build().deserialize(message).toString();
+
+        var resolvedComponents = builder.build().deserialize(message);
+        var htmlBuiltMessage = MiniMessage.miniMessage().serialize(resolvedComponents);
 
         var tgUser = (TelegramUser) socialUser;
         var chatId = tgUser.getLastMessage().getChat().getId();
         var replyToId = tgUser.getLastMessage().getMessageId();
-        var msg = new SendMessage(chatId.toString(), builtMessage);
+        var msg = new SendMessage(chatId.toString(), htmlBuiltMessage.toString());
         msg.setReplyToMessageId(replyToId);
         msg.setParseMode(ParseMode.HTML);
 
@@ -223,7 +235,7 @@ public class TelegramPlatform implements ISocialPlatform {
             if (botState == BotState.Started) {
                 try {
                     telegramClient.execute(msg);
-                    logger.info("tgMessage to \"" + socialUser.getName() + "\" - " + builtMessage);
+                    logger.info("tgMessage to \"" + socialUser.getName() + "\" - " + htmlBuiltMessage);
                 }
                 catch (TelegramApiException err) {
                     err.printStackTrace();
@@ -283,27 +295,93 @@ public class TelegramPlatform implements ISocialPlatform {
         }
     }
 
+    private static final Pattern TelegramValidCommandToken = Pattern.compile("^[a-z0-9_]{1,32}$");
+
     private CompletableFuture<Boolean> UpdateCommandSuggestions() {
-        if (getBotState() != BotState.Started) {
-            return CompletableFuture.completedFuture(false);
+        var languages = new HashSet<String>();
+        for (var module : connectedModules) {
+            for (var translationSource : module.getTranslations()) {
+                languages.add(translationSource.getLanguage());
+            }
         }
+
         @SuppressWarnings("unchecked")
-        var commandsInfo = connectedModules
+        var commandInfos = connectedModules
             .stream()
             .mapMulti((x, consumer) -> {
+                var matcher = TelegramValidCommandToken.matcher(x.getName());
+                if (!matcher.find()) {
+                    logger.warning("module name '" + x.getName() + "' not valid for telegram suggestion, skips all his command from suggestion. But commands is keep working");
+                    return;
+                }
+
                 x.getSocialCommands().forEach(y -> consumer.accept(new ImmutablePair<>(x, y)));
             })
             .map(x -> (ImmutablePair<IBridgeModule, ISocialCommand>) x)
-            .filter(x -> x != null)
-            .map(pair -> new BotCommand('/' + pair.left.getName() + '-' + pair.right.getLiteral(), pair.right.getLiteral()))
+            .map(pair -> {
+                var finalName = pair.left.getName() + '_' + pair.right.getLiteral();
+                var matcher = TelegramValidCommandToken.matcher(finalName);
+                if (!matcher.find()) {
+                    logger.warning("telegram command name '" + finalName + "' not valid for telegram suggestion, skips this command from suggestion. But command is keep working");
+                    return null;
+                }
+
+                return pair;
+            })
             .toList();
 
-        if (commandsInfo.isEmpty()) {
-            return CompletableFuture.completedFuture(true);
+        return CompletableFuture
+            .allOf(languages.stream().map(x -> UpdateCommandSuggestions(x, commandInfos)).toArray(CompletableFuture[]::new))
+            .thenRun(() -> UpdateCommandSuggestions(null, commandInfos))
+            .thenApply(Void -> true);
+    }
+
+    private CompletableFuture<Boolean> UpdateCommandSuggestions(String languageCode, List<ImmutablePair<IBridgeModule, ISocialCommand>> commands) {
+        if (getBotState() != BotState.Started) {
+            return CompletableFuture.completedFuture(false);
         }
 
-        var commandQuery = new SetMyCommands(commandsInfo);
-        return this.withRetries(() -> telegramClient.execute(commandQuery));
+        @SuppressWarnings("unchecked")
+        var tasks = (CompletableFuture<BotCommand>[]) commands
+            .stream()
+            .map(pair -> {
+                var finalName = pair.left.getName() + '_' + pair.right.getLiteral();
+
+                var localizationLanguage = languageCode != null
+                                            ? languageCode
+                                            : LocalizationService.defaultLocale;
+
+                return bridge.getLocalizationService()
+                    .getMessage(pair.left, localizationLanguage, pair.right.getDescription())
+                    .thenApply(description -> new BotCommand(finalName, description));
+            })
+            .toArray(CompletableFuture[]::new);
+
+        return CompletableFuture
+            .allOf(tasks)
+            .thenCompose(Void -> {
+                var commandsInfo = Arrays
+                    .stream(tasks)
+                    .map(task -> {
+                        try {
+                            return task.get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    })
+                    .filter(commandInfo -> commandInfo != null)
+                    .toList();
+
+                if (commandsInfo.isEmpty()) {
+                    return CompletableFuture.completedFuture(true);
+                }
+                else {
+                    var commandQuery = new SetMyCommands(commandsInfo);
+                    commandQuery.setLanguageCode(languageCode);
+                    return this.withRetries(() -> telegramClient.execute(commandQuery));
+                }
+            });
     }
 
     @Override

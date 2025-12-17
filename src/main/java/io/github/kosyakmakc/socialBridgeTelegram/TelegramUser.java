@@ -53,6 +53,10 @@ public class TelegramUser extends SocialUser implements Comparable<TelegramUser>
         return id;
     }
 
+    public void setLastMessage(Message lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
     public Message getLastMessage() {
         return lastMessage;
     }

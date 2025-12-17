@@ -17,13 +17,20 @@ public class LongPollingHandler implements LongPollingSingleThreadUpdateConsumer
     private static final CommandArgument<String> systemWordArgument = CommandArgument.ofWord("/{botSuffix}-{commandLiteral} [arguments, ...]");
     private final TelegramPlatform socialPlatform;
 
+    private String botUsername;
+
     public LongPollingHandler(TelegramPlatform telegramPlatform) {
         this.socialPlatform = telegramPlatform;
     }
 
     @Override
     public void consume(Update update) {
-        var tgUser = update.getMessage().getFrom();
+        var tgMessage = update.getMessage();
+        if (tgMessage == null) {
+            return;
+        }
+
+        var tgUser = tgMessage.getFrom();
         var longId = tgUser.getId();
         var identifier = new Identifier(IdentifierType.Long, longId);
         socialPlatform.tryGetUser(identifier)
@@ -48,6 +55,8 @@ public class LongPollingHandler implements LongPollingSingleThreadUpdateConsumer
             })
             .thenApply(socialUser -> {
                 if (socialUser instanceof TelegramUser telegramUser) {
+                    telegramUser.setLastMessage(tgMessage);
+
                     var isChanged = telegramUser.TryActualize(tgUser);
                     if (isChanged) {
                         socialPlatform.getLogger().info("telegram user info updated (id " + longId + " - " + telegramUser.getName() + ")");
@@ -84,6 +93,10 @@ public class LongPollingHandler implements LongPollingSingleThreadUpdateConsumer
             // pumping "/{moduleSuffix}-{commandLiteral}" in reader
             var commandLiteral = systemWordArgument.getValue(argsReader);
 
+            if (commandLiteral.endsWith('@' + botUsername)) {
+                commandLiteral = commandLiteral.substring(0, commandLiteral.length() - botUsername.length() - 1);
+            }
+
             for (var module : socialPlatform.getBridge().getModules()) {
 
                 if (!commandLiteral.startsWith('/' + module.getName())) {
@@ -91,7 +104,7 @@ public class LongPollingHandler implements LongPollingSingleThreadUpdateConsumer
                 }
 
                 for (var socialCommand : module.getSocialCommands()) {
-                    if (commandLiteral.equals('/' + module.getName() + '-' + socialCommand.getLiteral())) {
+                    if (commandLiteral.equals('/' + module.getName() + '_' + socialCommand.getLiteral())) {
                         socialCommand.handle(socialUser, argsReader);
                         return true;
                     }
@@ -103,5 +116,9 @@ public class LongPollingHandler implements LongPollingSingleThreadUpdateConsumer
             return true;
         }
         return false;
+    }
+
+    public void setBotUsername(String userName) {
+        botUsername = userName;
     }
 }
