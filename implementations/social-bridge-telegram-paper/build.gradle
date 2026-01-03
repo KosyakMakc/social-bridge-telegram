@@ -35,9 +35,9 @@ tasks {
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.21.8")
         downloadPlugins {
-            github("Test-Account666", "PlugManX", "v3.0.2", "PlugManX-3.0.2.jar")
-            github("kosyakmakc", "social-bridge", "0.4.2", "SocialBridge-paper-0.4.2.jar")
-            //github("kosyakmakc", "social-bridge-module-auth", "0.2.0", "AuthSocial-paper-0.2.0.jar")
+            //github("Test-Account666", "PlugManX", "v3.0.2", "PlugManX-3.0.2.jar")
+            github("kosyakmakc", "social-bridge", "0.4.3", "SocialBridge-paper-0.4.3.jar")
+            github("kosyakmakc", "social-bridge-module-auth", "0.4.0", "AuthSocial-paper-0.4.0.jar")
         }
     }
 }

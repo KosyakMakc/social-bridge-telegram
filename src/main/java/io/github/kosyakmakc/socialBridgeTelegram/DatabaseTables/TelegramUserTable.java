@@ -20,7 +20,7 @@ public class TelegramUserTable implements IDatabaseTable {
     public static final String CREATED_AT_FIELD_NAME = "created_at";
     public static final String UPDATED_AT_FIELD_NAME = "updated_at";
 
-    @DatabaseField(columnName = ID_FIELD_NAME, generatedId = true)
+    @DatabaseField(columnName = ID_FIELD_NAME, id = true)
     private long id;
 
     @DatabaseField(columnName = USERNAME_FIELD_NAME, canBeNull = true)
