@@ -1,7 +1,7 @@
 # SocialBridge-telegram
 ## It is social platform connector to [telegram](https://telegram.org/) for [SocialBridge](https://github.com/KosyakMakc/social-bridge) minecraft plugin
 
-### this connector provide commands for authorization processes
+### this connector provide commands for setup bot and check his health
 
 ### Commands for minecraft:
 
