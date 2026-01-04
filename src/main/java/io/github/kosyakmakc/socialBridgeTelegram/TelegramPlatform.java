@@ -60,6 +60,7 @@ public class TelegramPlatform implements ISocialPlatform {
     private BotState botState = BotState.Stopped;
     private LongPollingHandler telegramHandler;
     private OkHttpTelegramClient telegramClient;
+    private String usingToken;
 
     private LinkedList<ISocialModule> connectedModules = new LinkedList<>();
 
@@ -87,6 +88,7 @@ public class TelegramPlatform implements ISocialPlatform {
                         telegramClient = new OkHttpTelegramClient(token);
                         telegramHandler = new LongPollingHandler(this);
                         botsApplication.registerBot(token, telegramHandler);
+                        usingToken = token;
 
                         var userBot = telegramClient.execute(new GetMe());
                         telegramHandler.setBotUsername(userBot.getUserName());
@@ -119,23 +121,18 @@ public class TelegramPlatform implements ISocialPlatform {
 
         botState = BotState.Stopping;
 
-        return getTgToken()
-        .thenCompose(token -> {
-            return withRetries(() -> {
-                try {
-                    botsApplication.unregisterBot(token);
-                    botState = BotState.Stopped;
-                    telegramClient = null;
-                    telegramHandler = null;
-                    logger.info("Telegram bot stopped");
-                }
-                catch (TelegramApiException err) {
-                    err.printStackTrace();
-                    return false;
-                }
-                return true;
-            });
-        });
+        try {
+            botsApplication.unregisterBot(usingToken);
+            botState = BotState.Stopped;
+            telegramClient = null;
+            telegramHandler = null;
+            logger.info("Telegram bot stopped");
+        }
+        catch (TelegramApiException err) {
+            err.printStackTrace();
+            return CompletableFuture.completedFuture(false);
+        }
+        return CompletableFuture.completedFuture(true);
     }
     
     public CompletableFuture<Boolean> setupToken(String token) {
