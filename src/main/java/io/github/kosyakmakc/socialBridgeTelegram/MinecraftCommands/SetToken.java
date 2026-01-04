@@ -10,12 +10,13 @@ import io.github.kosyakmakc.socialBridge.MinecraftPlatform.MinecraftUser;
 import io.github.kosyakmakc.socialBridgeTelegram.TelegramModule;
 import io.github.kosyakmakc.socialBridgeTelegram.TelegramPlatform;
 import io.github.kosyakmakc.socialBridgeTelegram.Utils.TelegramMessageKey;
+import io.github.kosyakmakc.socialBridgeTelegram.Utils.TelegramPermissions;
 import io.github.kosyakmakc.socialBridgeTelegram.Utils.TranslationException;
 
 public class SetToken extends MinecraftCommandBase {
 
     public SetToken() {
-        super("setupToken", TelegramMessageKey.SET_TOKEN_DESCRIPTION, List.of(CommandArgument.ofGreedyString("Telegram token")));
+        super("setupToken", TelegramMessageKey.SET_TOKEN_DESCRIPTION, TelegramPermissions.CAN_SET_LOGIN, List.of(CommandArgument.ofGreedyString("Telegram token")));
     }
 
     @Override
