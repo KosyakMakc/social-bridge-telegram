@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -44,7 +45,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import com.j256.ormlite.table.TableUtils;
 
 public class TelegramPlatform implements ISocialPlatform {
-    private static final String PLATFORM_NAME = "telegram";
+    public static final String PLATFORM_NAME = "telegram";
+    public static final UUID PLATFORM_ID = UUID.fromString("65acde1c-7b66-4f74-83e5-299ee11d3f4a");
     private static final String configurationPath = "social-bridge-telegram";
     private static final String configurationPathToken = configurationPath + "_token";
     private static final String configurationPathRetryMax = configurationPath + "_retries-max";
@@ -204,6 +206,11 @@ public class TelegramPlatform implements ISocialPlatform {
     @Override
     public String getPlatformName() {
         return PLATFORM_NAME;
+    }
+
+    @Override
+    public UUID getId() {
+        return PLATFORM_ID;
     }
 
     @Override
